@@ -81,8 +81,6 @@ export class SpeechDialog extends Dialog {
     const result = { state: PromptResponseState.completed } as OperationResult;
     const recordOutcome = response.operationOutcome as IRecordOutcome;
 
-    // console.log('[ RESPONSE ]', JSON.stringify(response, null, 2));
-
     // recording failed
     if (!recordOutcome) {
       const msg = recordOutcome ? recordOutcome.failureReason : 'Message missing operationOutcome.';
@@ -104,7 +102,6 @@ export class SpeechDialog extends Dialog {
       if (err) {
         this.speechError(err, result);
       }
-      console.log('[ SPEECH ]', err, speech);
 
       result.response.speech = speech;
 
@@ -212,7 +209,6 @@ function beginDialog(session: CallSession, promptType: PromptType, action: IActi
   const maxRetries = typeof options.maxRetries === 'number' ? options.maxRetries : 2;
   delete options.maxRetries;
   Object.assign(action, options);
-  // console.log('[ BEGIN DIALOG ]', JSON.stringify({ action, maxRetries, promptType }, null, 2));
   session.beginDialog(SPEECH_DIALOG_NAME, { action, maxRetries, promptType });
 }
 
