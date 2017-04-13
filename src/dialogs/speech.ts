@@ -1,9 +1,10 @@
 import {
   CallSession, Dialog, IAction,
-  IConversationResult, IIsAction, IPromptOptions,
-  IRecording, IRecordOutcome, IRecordPromptOptions,
-  Library, PlayPromptAction, Prompts,
-  RecordAction, RecordingCompletionReason, ResumeReason } from 'botbuilder-calling';
+  IConversationResult, IDialogResult, IIsAction,
+  IPromptOptions, IRecording, IRecordOutcome,
+  IRecordPromptOptions, Library, PlayPromptAction,
+  Prompts, RecordAction, RecordingCompletionReason,
+  ResumeReason } from 'botbuilder-calling';
 import { LuisClient, LuisResult } from 'cognitive-luis-client';
 import { SPEECH_PROPERTY, SPEECH_STATUS, SpeechClient, SpeechResult } from 'cognitive-speech-client';
 import { RecognizeSpeechAction } from '../workflow/recognize-speech-action';
@@ -33,6 +34,14 @@ export interface ISpeechRecording extends IRecording {
 
 export interface IUnderstandRecording extends ISpeechRecording {
   language: LuisResult;
+}
+
+// tslint:disable-next-line:no-empty-interface
+export interface ISpeechResult extends IDialogResult<ISpeechRecording> {
+}
+
+// tslint:disable-next-line:no-empty-interface
+export interface IUnderstandResult extends IDialogResult<IUnderstandRecording> {
 }
 
 export interface IPromptsSettings {
