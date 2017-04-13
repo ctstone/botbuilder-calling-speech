@@ -18,13 +18,13 @@
   "license": "MIT",
   "peerDependencies": {
     "botbuilder-calling": "^3.0.1",
-    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.2.tgz",
+    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.3.tgz",
     "cognitive-speech-client": "https://chstone.blob.core.windows.net/npm/cognitive-speech-client-1.0.3.tgz"
   },
   "devDependencies": {
     "@types/nock": "^8.2.1",
     "botbuilder-calling": "^3.0.1",
-    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.2.tgz",
+    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.3.tgz",
     "cognitive-speech-client": "https://chstone.blob.core.windows.net/npm/cognitive-speech-client-1.0.3.tgz",
     "nock": "^9.0.13",
     "typescript": "^2.2.2"
