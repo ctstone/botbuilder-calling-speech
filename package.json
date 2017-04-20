@@ -1,7 +1,7 @@
 {
   "name": "botbuilder-calling-speech",
   "version": "1.0.6",
-  "description": "",
+  "description": "Dialog extensions for botbuilder-calling to manage speech-to-text and language understanding",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
@@ -14,18 +14,22 @@
     "preversion": "git config user.name CI && git config user.email %npm_package_author_name%"
   },
   "keywords": [],
-  "author": "",
+  "author": "chstone@microsoft.com",
+  "repository": {
+    "url": "https://github.com/ctstone/botbuilder-calling-speech",
+    "type": "git"
+  },
   "license": "MIT",
   "peerDependencies": {
     "botbuilder-calling": "^3.0.1",
-    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.4.tgz",
-    "cognitive-speech-client": "https://chstone.blob.core.windows.net/npm/cognitive-speech-client-1.0.3.tgz"
+    "cognitive-luis-client": "^1.0.6",
+    "cognitive-speech-client": "^1.1.6"
   },
   "devDependencies": {
     "@types/nock": "^8.2.1",
     "botbuilder-calling": "^3.0.1",
-    "cognitive-luis-client": "https://chstone.blob.core.windows.net/npm/cognitive-luis-client-1.0.4.tgz",
-    "cognitive-speech-client": "https://chstone.blob.core.windows.net/npm/cognitive-speech-client-1.0.3.tgz",
+    "cognitive-luis-client": "^1.0.6",
+    "cognitive-speech-client": "^1.1.6",
     "nock": "^9.0.13",
     "typescript": "^2.2.2"
   }
