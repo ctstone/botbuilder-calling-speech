@@ -26,11 +26,9 @@
     "cognitive-speech-client": "^1.1.6"
   },
   "devDependencies": {
-    "@types/nock": "^8.2.1",
     "botbuilder-calling": "^3.0.1",
     "cognitive-luis-client": "^1.0.6",
     "cognitive-speech-client": "^1.1.6",
-    "nock": "^9.0.13",
     "typescript": "^2.2.2"
   }
 }
