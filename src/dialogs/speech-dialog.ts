@@ -9,6 +9,7 @@ import { LuisClient, LuisResult } from 'cognitive-luis-client';
 import { SPEECH_PROPERTY, SPEECH_STATUS, SpeechClient, SpeechResult } from 'cognitive-speech-client';
 import { RecognizeSpeechAction } from '../workflow/recognize-speech-action';
 import { UnderstandSpeechAction } from '../workflow/understand-speech-action';
+import { LuisDialog } from './luis-dialog';
 
 export type PlayPrompt = string|string[]|IAction|IIsAction;
 
@@ -95,7 +96,7 @@ export class SpeechDialog extends Dialog {
       const msg = recordOutcome ? recordOutcome.failureReason : 'Message missing operationOutcome.';
       const error = new Error(`prompt error: ${msg}`);
       session.endDialogWithResult({ resumed: ResumeReason.notCompleted, error }); // TODO pass promptType
-      return;
+      return; // TODO retry
     }
 
     this.receiveRecordOutcome(response, recordOutcome, result);
@@ -127,6 +128,27 @@ export class SpeechDialog extends Dialog {
         this.routeResponse(session, result, args);
       }
     });
+  }
+
+  dialogResumed<T>(session: CallSession, result: IDialogResult<T>): void {
+    if (result.error) {
+      session.error(result.error);
+    } else if (result.resumed === ResumeReason.completed) {
+
+      // resumed from a LUIS dialog
+      if (result.childId.startsWith('LUIS:')) {
+        session.endDialog();
+
+      // resumed from a builtin prompt (confirm)
+      } else if (result.childId === 'BotBuilder:Prompts') {
+        session.dialogData.confirmed = result.response;
+        this.replyReceived(session);
+      }
+
+    // unknown resume reason, start over
+    } else {
+      this.replyReceived(session);
+    }
   }
 
   private luisError(err: Error, result: OperationResult): void {
@@ -189,7 +211,11 @@ export class SpeechDialog extends Dialog {
         break;
 
       case PromptResponseState.completed:
-        session.endDialogWithResult({ resumed: ResumeReason.completed, response: result.response });
+        if (!this.triggerIntent(session, result.response)) {
+          if (!this.triggerCancel(session, result.response)) {
+            session.endDialogWithResult({ resumed: ResumeReason.completed, response: result.response });
+          }
+        }
         break;
 
       case PromptResponseState.failed:
@@ -211,6 +237,48 @@ export class SpeechDialog extends Dialog {
         session.endConversation();
         break;
     }
+  }
+
+  private triggerCancel(session: CallSession, result: IUnderstandRecording): boolean {
+    if (result.language) {
+      const intent = result.language.topScoringIntent;
+      const intentDialog = LuisDialog.findCancel(session, intent);
+      return this.trigger(session, intentDialog, result, 'cancel');
+    }
+  }
+
+  private triggerIntent(session: CallSession, result: IUnderstandRecording): boolean {
+    if (result.language) {
+      const intent = result.language.topScoringIntent;
+      const intentDialog = LuisDialog.findTrigger(session, intent);
+      return this.trigger(session, intentDialog, result, 'intent');
+    }
+  }
+
+  private trigger(session: CallSession, intentDialog: LuisDialog, result: IUnderstandRecording, action: 'intent' | 'cancel'): boolean {
+    if (intentDialog && this.canMatch(session)) {
+      if (intentDialog.triggerOptions.confirmPrompt && !session.dialogData.confirmed) {
+        Prompts.confirm(session, intentDialog.triggerOptions.confirmPrompt);
+        return true;
+      } else if (action === 'intent') {
+        session.beginDialog(`LUIS:${intentDialog.id}`, result);
+        return true;
+      } else if (action === 'cancel') {
+        const dialogInStack = session.sessionState.callstack.find((x) => x.id === `LUIS:${intentDialog.id}`);
+        if (dialogInStack) {
+          const position = session.sessionState.callstack.indexOf(dialogInStack);
+          const returnTo = session.sessionState.callstack[position - 1];
+          session.replaceDialog(returnTo.id);
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private canMatch(session: CallSession): boolean {
+    const confirmed = session.dialogData.confirmed;
+    return confirmed === true || confirmed !== false;
   }
 }
 
