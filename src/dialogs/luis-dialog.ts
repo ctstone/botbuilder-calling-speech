@@ -30,7 +30,7 @@ export class LuisDialog extends Dialog {
   static findTrigger(session: CallSession, intent: Intent): LuisDialog {
     const dialog = LuisDialog.intents
       .filter((x) => x.triggerOptions)
-      .find((x) => matchIntent(x.cancelOptions, intent));
+      .find((x) => matchIntent(x.triggerOptions, intent));
 
     if (!dialog) {
       return null;
