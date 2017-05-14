@@ -65,7 +65,6 @@ export class LuisDialog extends Dialog {
     return dialog;
   }
 
-
   triggerOptions: TriggerActionOptions;
   cancelOptions: CancelActionOptions;
   id: string;

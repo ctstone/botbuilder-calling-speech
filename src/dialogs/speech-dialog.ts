@@ -82,7 +82,7 @@ export class SpeechDialog extends Dialog {
   begin(session: CallSession, args: IPromptArgs): void {
     Object.assign(session.dialogData, args);
     session.send(args.action);
-    session.sendBatch();
+    session.sendBatch(); // TODO ensure MP3 format
   }
 
   replyReceived(session: CallSession): void {
@@ -137,7 +137,7 @@ export class SpeechDialog extends Dialog {
 
       // resumed from a LUIS dialog
       if (result.childId.startsWith('LUIS:')) {
-        session.endDialog();
+        session.endDialogWithResult(result);
 
       // resumed from a builtin prompt (confirm)
       } else if (result.childId === 'BotBuilder:Prompts') {
