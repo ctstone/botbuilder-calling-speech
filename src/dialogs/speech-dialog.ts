@@ -13,7 +13,7 @@ import { LuisDialog } from './luis-dialog';
 
 export type PlayPrompt = string|string[]|IAction|IIsAction;
 
-export enum PromptType { action, confirm, choice, digits, record, speechToText, understanding }
+export enum PromptType { action, confirm, choice, digits, record, speechToText, understanding, understandingChoice }
 
 enum PromptResponseState { completed, retry, canceled, terminated, failed }
 
@@ -36,6 +36,7 @@ export interface ISpeechRecording extends IRecording {
 export interface IUnderstandRecording extends ISpeechRecording {
   language: LuisResult;
   intercepted: boolean;
+  choice: IChoice;
 }
 
 // tslint:disable-next-line:no-empty-interface
@@ -56,6 +57,15 @@ export interface IPromptsSettings {
   noSpeech?: PlayPrompt;
 }
 
+export interface IChoice {
+  name: string;
+  variants: string[];
+}
+
+export interface IRecordChoiceOptions extends IRecordPromptOptions {
+  choices: IChoice[];
+}
+
 const DEFAULT_PROMPTS: IPromptsSettings = {
   invalidDtmfPrompt: "That's an invalid option.",
   invalidRecognizePrompt: "I'm sorry. I didn't understand.",
@@ -74,6 +84,15 @@ export class SpeechDialog extends Dialog {
   static understandSpeech(session: CallSession, playPrompt: PlayPrompt, options: IRecordPromptOptions = {}): void {
     const action = new UnderstandSpeechAction(session).playPrompt(createPrompt(session, playPrompt));
     beginDialog(session, PromptType.understanding, action.toAction(), options);
+  }
+
+  static understandChoice(session: CallSession, playPrompt: PlayPrompt, options: IRecordChoiceOptions): void {
+    const action = new UnderstandSpeechAction(session).playPrompt(createPrompt(session, playPrompt));
+    options.choices.forEach((x, i) => {
+      x.variants.push(i.toString());
+      x.variants.push(x.name.toLowerCase());
+    });
+    beginDialog(session, PromptType.understandingChoice, action.toAction(), options);
   }
 
   constructor(private speech: SpeechClient, private luis: LuisClient, private prompts = DEFAULT_PROMPTS) {
@@ -153,6 +172,17 @@ export class SpeechDialog extends Dialog {
     }
   }
 
+  private selectChoice(session: CallSession, result: OperationResult, args: IRecordChoiceOptions): void {
+    const speech = result.response.speech.header.name.toLowerCase();
+    const choice = args.choices.find((choice) => choice.name === speech || choice.variants.some((x) => x === speech));
+    if (choice) {
+      result.response.choice = choice;
+    } else {
+      result.state = PromptResponseState.retry;
+      result.retryPrompt = `Sorry, I don't understand ${speech} as a valid option.`;
+    }
+  }
+
   private luisError(err: Error, result: OperationResult): void {
     result.state = PromptResponseState.retry;
     result.retryPrompt = this.prompts.invalidRecognizePrompt;
@@ -215,6 +245,12 @@ export class SpeechDialog extends Dialog {
       case PromptResponseState.completed:
         if (!this.triggerIntent(session, result.response)) {
           if (!this.triggerCancel(session, result.response)) {
+            if (args.promptType === PromptType.understandingChoice) {
+              this.selectChoice(session, result, args as any as IRecordChoiceOptions);
+              if (result.state !== PromptResponseState.completed) {
+                return this.routeResponse(session, result, args);
+              }
+            }
             session.endDialogWithResult({ resumed: ResumeReason.completed, response: result.response });
           }
         }
