@@ -137,6 +137,7 @@ export class SpeechDialog extends Dialog {
 
       // resumed from a LUIS dialog
       if (result.childId.startsWith('LUIS:')) {
+        result.resumed = ResumeReason.back;
         session.endDialogWithResult(result);
 
       // resumed from a builtin prompt (confirm)
@@ -257,14 +258,22 @@ export class SpeechDialog extends Dialog {
 
   private trigger(session: CallSession, intentDialog: LuisDialog, result: IUnderstandRecording, action: 'intent' | 'cancel'): boolean {
     if (intentDialog && this.canMatch(session)) {
+
+      // user must confirm before triggering new dialog
       if (intentDialog.triggerOptions.confirmPrompt && !session.dialogData.confirmed) {
         Prompts.confirm(session, intentDialog.triggerOptions.confirmPrompt);
         return true;
+
+      // launch dialog for this intent
       } else if (action === 'intent') {
         session.beginDialog(`LUIS:${intentDialog.id}`, result);
         return true;
+
+      // cancel this intent
       } else if (action === 'cancel') {
-        const dialogInStack = session.sessionState.callstack.find((x) => x.id === `LUIS:${intentDialog.id}`);
+        const dialogInStack = session.sessionState.callstack.find((x) => x.id === `LUIS:${intentDialog.id}`); // TODO check top of stack only
+
+        // this intent is active
         if (dialogInStack) {
           const position = session.sessionState.callstack.indexOf(dialogInStack);
           const returnTo = session.sessionState.callstack[position - 1];
