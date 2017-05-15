@@ -35,6 +35,7 @@ export interface ISpeechRecording extends IRecording {
 
 export interface IUnderstandRecording extends ISpeechRecording {
   language: LuisResult;
+  intercepted: boolean;
 }
 
 // tslint:disable-next-line:no-empty-interface
@@ -130,14 +131,14 @@ export class SpeechDialog extends Dialog {
     });
   }
 
-  dialogResumed<T>(session: CallSession, result: IDialogResult<T>): void {
+  dialogResumed(session: CallSession, result: IDialogResult<any>): void {
     if (result.error) {
       session.error(result.error);
     } else if (result.resumed === ResumeReason.completed) {
 
       // resumed from a LUIS dialog
       if (result.childId.startsWith('LUIS:')) {
-        result.resumed = ResumeReason.back;
+        (result.response as IUnderstandRecording).intercepted = true;
         session.endDialogWithResult(result);
 
       // resumed from a builtin prompt (confirm)
