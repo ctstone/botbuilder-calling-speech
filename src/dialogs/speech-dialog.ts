@@ -89,7 +89,8 @@ export class SpeechDialog extends Dialog {
   static understandChoice(session: CallSession, playPrompt: PlayPrompt, options: IRecordChoiceOptions): void {
     const action = new UnderstandSpeechAction(session).playPrompt(createPrompt(session, playPrompt));
     options.choices.forEach((x, i) => {
-      x.variants.push(i.toString());
+      x.variants = x.variants || [];
+      x.variants.push((i + 1).toString());
       x.variants.push(x.name.toLowerCase());
     });
     beginDialog(session, PromptType.understandingChoice, action.toAction(), options);
