@@ -1,6 +1,6 @@
 {
   "name": "botbuilder-calling-speech",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "Dialog extensions for botbuilder-calling to manage speech-to-text and language understanding",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
