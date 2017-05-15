@@ -35,7 +35,6 @@ export interface ISpeechRecording extends IRecording {
 
 export interface IUnderstandRecording extends ISpeechRecording {
   language: LuisResult;
-  intercepted: boolean;
   choice: IChoice;
 }
 
@@ -158,7 +157,7 @@ export class SpeechDialog extends Dialog {
 
       // resumed from a LUIS dialog
       if (result.childId.startsWith('LUIS:')) {
-        (result.response as IUnderstandRecording).intercepted = true;
+        result.resumed = ResumeReason.canceled;
         session.endDialogWithResult(result);
 
       // resumed from a builtin prompt (confirm)
