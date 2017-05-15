@@ -246,7 +246,7 @@ export class SpeechDialog extends Dialog {
         if (!this.triggerIntent(session, result.response)) {
           if (!this.triggerCancel(session, result.response)) {
             if (args.promptType === PromptType.understandingChoice) {
-              this.selectChoice(session, result, args as any as IRecordChoiceOptions);
+              this.selectChoice(session, result, args.action as any as IRecordChoiceOptions);
               if (result.state !== PromptResponseState.completed) {
                 return this.routeResponse(session, result, args);
               }
