@@ -59,7 +59,7 @@ export interface IPromptsSettings {
 
 export interface IChoice {
   name: string;
-  variants: string[];
+  variants?: string[];
 }
 
 export interface IRecordChoiceOptions extends IRecordPromptOptions {
@@ -137,7 +137,7 @@ export class SpeechDialog extends Dialog {
       result.response.speech = speech;
 
       // parse understanding
-      if (!err && args.promptType === PromptType.understanding) {
+      if (!err && (args.promptType === PromptType.understanding || args.promptType === PromptType.understandingChoice)) {
         this.luis.recognize(speech.header.name, (err, luis) => {
           if (err) {
             this.luisError(err, result);
