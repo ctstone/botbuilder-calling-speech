@@ -74,6 +74,19 @@ const DEFAULT_PROMPTS: IPromptsSettings = {
   recordSilencePrompt: "I couldn't hear anything.",
 };
 
+export const NUMBERS = {
+  1: 'one',
+  2: 'two',
+  3: 'three',
+  4: 'four',
+  5: 'five',
+  6: 'six',
+  7: 'seven',
+  8: 'eight',
+  9: 'nine',
+  10: 'ten',
+};
+
 export class SpeechDialog extends Dialog {
   static recognizeSpeech(session: CallSession, playPrompt: PlayPrompt, options: IRecordPromptOptions = {}): void {
     const action = new RecognizeSpeechAction(session).playPrompt(createPrompt(session, playPrompt));
@@ -88,9 +101,11 @@ export class SpeechDialog extends Dialog {
   static understandChoice(session: CallSession, playPrompt: PlayPrompt, options: IRecordChoiceOptions): void {
     const action = new UnderstandSpeechAction(session).playPrompt(createPrompt(session, playPrompt));
     options.choices.forEach((x, i) => {
+      const n = i + 1;
       x.variants = x.variants || [];
-      x.variants.push((i + 1).toString());
-      x.variants.push(x.name.toLowerCase());
+      x.variants.push(n.toString());
+      x.variants.push(NUMBERS[n]);
+      x.variants.push(x.name.replace(/\W/g, ' ').toLowerCase());
     });
     beginDialog(session, PromptType.understandingChoice, action.toAction(), options);
   }
