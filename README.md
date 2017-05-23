@@ -11,6 +11,10 @@ npm install --save botbuilder-calling cognitive-speech-client cognitive-luis-cli
 # Usage
 
 ## TypeScript
+### Sample bot
+
+Use the static methods of `SpeechDialog` to prompt the caller to either `understandSpeech()` (speech-to-text and LUIS) or `recognizeSpeech()` (just speech-to-text). These methods extend the functionality of the built in [Prompts](recognizeSpeech) class.
+
 ```TypeScript
 import { SpeechDialog, speechLibrary } from 'botbuilder-calling-speech';
 import { UniversalCallBot } from 'botbuilder-calling';
@@ -51,6 +55,23 @@ bot.dialog('/', [
 ]);
 ```
 
+### Automatic Intent-to-Dialog mapping
+Use a `LuisDialog` instance and its `triggerAction()` method to automatically call a dialog when a certain intent is recognized by LUIS.
+```TypeScript
+import { IUnderstandRecording, LuisDialog } from 'botbuilder-calling-speech';
+
+bot.dialog('myIntentDialog', new LuisDialog([
+  (session, args: IUnderstandRecording, next) => {
+    session.endDialog('Your order is shipping soon!');
+  },
+]).triggerAction({
+  match: 'intent.order.status',
+  threshold: 0.8, // optional
+}));
+```
+
+> **Note** Automatic dialog mapping only occurs for prompts initiated by `SpeechDialog.understandSpeech()`.
+
 ## JavaScript
 ```JavaScript
 const bcs = require('botbuilder-calling-speech');
@@ -75,18 +96,28 @@ bot.library(bcs.speechLibrary(speechClient, luisClient));
 
 Use the static `SpeechDialog` functions just like you would use the static `Prompt` functions from `botbuilder-calling`.
 
-### SpeechDialog.recognizeSpeech(session, playPrompt, options)
+### SpeechDialog
 
-Prompt caller and process speech through the configured `SpeechClient`.
+#### Methods
+* (static) **recognizeSpeech(session, playPrompt, options)**: Prompt caller and process speech through the configured `SpeechClient`.
+  - *session*: a `CallSession` object
+  - *playPrompt*: typically a `string`. May be any prompt recognized by   -Prompts.record()` from `botbuilder-calling`
+  - *options*: (optional) `IRecordPromptOptions` object from `botbuilder-calling`
+* (static) **understandSpeech(session, playPrompt, options)**: Prompt caller and process speech through both the configured `SpeechClient` and `LuisClient`.
+  - *session*: a `CallSession` object
+  - *playPrompt*: typically a `string`. May be any prompt recognized by   - rompts.record()` from `botbuilder-calling`
+  - *options*: (optional) `IRecordPromptOptions` object from `botbuilder-calling`
 
-* **session**: a `CallSession` object
-* **playPrompt**: typically a `string`. May be any prompt recognized by `Prompts.record()` from `botbuilder-calling`
-* **options**: (optional) `IRecordPromptOptions` object from `botbuilder-calling`
+### LuisDialog
 
-### SpeechDialog.understandSpeech(session, playPrompt, options)
+Wrap a dialog around a specific LUIS intent
 
-Prompt caller and process speech through both the configured `SpeechClient` and `LuisClient`.
+#### Constructor
+* **new LuisDialog(dialog)**: Create a new instance
+  - *dialog*: any valid `Dialog|IDialogWaterfallStep[]|IDialogWaterfallStep` that will handle the intent
 
-* **session**: a `CallSession` object
-* **playPrompt**: typically a `string`. May be any prompt recognized by `Prompts.record()` from `botbuilder-calling`
-* **options**: (optional) `IRecordPromptOptions` object from `botbuilder-calling`
+#### Methods
+* **triggerAction(options)**: assign a named intent and optional confidence threshold to this LuisDialog
+  - *options.match*: (string) name of the LUIS intent to match
+  - *options.threshold*: (number) optional threshold required to trigger this dialog
+  - *returns* the current LuisDialog
